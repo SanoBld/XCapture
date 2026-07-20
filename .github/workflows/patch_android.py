@@ -4,29 +4,19 @@ path = "android/app/build.gradle.kts"
 with open(path) as f:
     content = f.read()
 
-# Set a fixed NDK version (some plugins require a newer one than the default template)
+# Fixed NDK version (some plugins require newer than the default template)
 if "ndkVersion" not in content:
     content = content.replace("android {", 'android {\n    ndkVersion = "27.0.12077973"', 1)
 
-# Load key.properties and sign release builds with our stable keystore,
-# so installs update in place instead of requiring an uninstall each time.
-signing_block = '''
-    val keystoreProperties = java.util.Properties()
-    val keystorePropertiesFile = rootProject.file("key.properties")
-    if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
-    }
-'''
-if "keystoreProperties" not in content:
-    content = content.replace("android {", "android {\n" + signing_block, 1)
-
-if "signingConfigs {" not in content:
+# Stable signing config so release builds always share the same key
+# (avoids Android refusing updates with a new random debug key each CI run)
+if 'signingConfigs {' not in content:
     signing_configs = '''    signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            storeFile = file("xcapture-release.keystore")
+            storePassword = "xcapture123"
+            keyAlias = "xcapture"
+            keyPassword = "xcapture123"
         }
     }
 '''
