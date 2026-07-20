@@ -35,7 +35,9 @@ class OpenXblService {
       throw Exception('OpenXBL HTTP ${res.statusCode}: ${res.body}');
     }
     lastRawResponse = res.body.length > 500 ? res.body.substring(0, 500) : res.body;
-    final data = jsonDecode(res.body);
+    var data = jsonDecode(res.body) as Map<String, dynamic>;
+    // OpenXBL sometimes wraps the real payload inside a "content" key
+    if (data['content'] is Map) data = data['content'] as Map<String, dynamic>;
     // The API wraps results in "values"; fall back to other known keys just in case.
     final values = (data['values'] ?? data['gameClips'] ?? data['screenshots'] ?? []) as List;
     return values.map((e) => fromJson(e as Map<String, dynamic>)).toList();
