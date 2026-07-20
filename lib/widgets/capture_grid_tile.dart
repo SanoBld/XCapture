@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import '../models/capture.dart';
+import '../providers/settings_provider.dart';
 
-// Single grid item showing thumbnail + duration badge for clips
+// Single grid item: thumbnail, duration badge, optional title/date, selection checkbox
 class CaptureGridTile extends StatelessWidget {
   final Capture capture;
+  final TileInfo tileInfo;
+  final bool selectionMode;
+  final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
-  const CaptureGridTile({super.key, required this.capture, required this.onTap});
+  const CaptureGridTile({
+    super.key,
+    required this.capture,
+    required this.tileInfo,
+    required this.selectionMode,
+    required this.selected,
+    required this.onTap,
+    required this.onLongPress,
+  });
 
   String _formatDuration(Duration d) {
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -19,6 +33,7 @@ class CaptureGridTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(16),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -36,10 +51,39 @@ class CaptureGridTile extends StatelessWidget {
                 child: const Icon(Icons.broken_image_outlined),
               ),
             ),
+            if (tileInfo != TileInfo.none)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(8, 16, 8, 6),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black87],
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(capture.gameTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      if (tileInfo == TileInfo.titleAndDate)
+                        Text(DateFormat.yMMMd().format(capture.dateCaptured),
+                            style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ),
             if (capture.type == CaptureType.clip)
               Positioned(
                 right: 6,
-                bottom: 6,
+                top: 6,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
@@ -55,6 +99,25 @@ class CaptureGridTile extends StatelessWidget {
                         style: const TextStyle(color: Colors.white, fontSize: 11),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            if (selectionMode)
+              Positioned(
+                left: 6,
+                top: 6,
+                child: Icon(
+                  selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                  color: selected ? Theme.of(context).colorScheme.primary : Colors.white,
+                  size: 22,
+                ),
+              ),
+            if (selected)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).colorScheme.primary, width: 3),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
               ),

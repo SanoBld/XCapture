@@ -88,6 +88,33 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
               ListTile(
+                title: Text(l10n.t('startup_tab')),
+                trailing: DropdownButton<int>(
+                  value: settings.startupTab,
+                  underline: const SizedBox(),
+                  items: [
+                    DropdownMenuItem(value: 0, child: Text(l10n.t('screenshots'))),
+                    DropdownMenuItem(value: 1, child: Text(l10n.t('clips'))),
+                    DropdownMenuItem(value: 2, child: Text(l10n.t('settings'))),
+                  ],
+                  onChanged: (v) => v != null ? settings.setStartupTab(v) : null,
+                ),
+              ),
+              ListTile(
+                title: Text(l10n.t('tile_info')),
+                trailing: DropdownButton<TileInfo>(
+                  value: settings.tileInfo,
+                  underline: const SizedBox(),
+                  items: [
+                    DropdownMenuItem(value: TileInfo.none, child: Text(l10n.t('info_none'))),
+                    DropdownMenuItem(value: TileInfo.title, child: Text(l10n.t('info_title'))),
+                    DropdownMenuItem(
+                        value: TileInfo.titleAndDate, child: Text(l10n.t('info_title_date'))),
+                  ],
+                  onChanged: (v) => v != null ? settings.setTileInfo(v) : null,
+                ),
+              ),
+              ListTile(
                 title: Text(l10n.t('grid_columns')),
                 trailing: SegmentedButton<int>(
                   segments: const [

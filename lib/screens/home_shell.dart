@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/capture.dart';
 import '../core/localization/l10n_provider.dart';
+import '../providers/settings_provider.dart';
 import 'capture_gallery_page.dart';
 import 'settings_page.dart';
 
@@ -14,7 +15,7 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _index = 0;
+  int? _index;
 
   static const _pages = [
     CaptureGalleryPage(type: CaptureType.screenshot),
@@ -24,13 +25,14 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    _index ??= context.read<SettingsProvider>().startupTab;
     final l10n = context.watch<L10nProvider>();
     final titles = [l10n.t('screenshots'), l10n.t('clips'), l10n.t('settings')];
     return Scaffold(
-      appBar: AppBar(title: Text(titles[_index])),
+      appBar: AppBar(title: Text(titles[_index!])),
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
+        selectedIndex: _index!,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
           NavigationDestination(

@@ -31,5 +31,18 @@
   "save_to_device": "Enregistrer sur l'appareil",
   "saved": "Enregistré dans ta galerie",
   "save_failed": "Échec de l'enregistrement",
-  "share": "Partager"
+  "share": "Partager",
+  "startup_tab": "Onglet de démarrage",
+  "tile_info": "Infos sur les vignettes",
+  "info_none": "Aucune",
+  "info_title": "Nom du jeu",
+  "info_title_date": "Nom + date",
+  "select": "Sélectionner",
+  "select_all": "Tout sélectionner",
+  "cancel": "Annuler",
+  "selected_count": "{n} sélectionné(s)",
+  "download_selected": "Télécharger",
+  "share_selected": "Partager",
+  "how_to_get_key": "1. Connecte-toi sur xbl.io avec ton compte Microsoft\n2. Vérifie par SMS\n3. Profil > API Keys > Create",
+  "language_select": "Langue"
 }

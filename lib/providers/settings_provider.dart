@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants.dart';
 
-// App-wide settings: theme mode, dynamic color, grid density, language, accent
+enum TileInfo { none, title, titleAndDate }
+
+// App-wide settings: theme, language, accent, grid, startup tab, tile display
 class SettingsProvider extends ChangeNotifier {
   ThemeMode themeMode = ThemeMode.system;
   bool useDynamicColor = true;
   int gridColumns = 3;
   String languageCode = 'en';
   Color accentColor = const Color(0xFF107C10);
+  int startupTab = 0; // 0=Screenshots, 1=Clips, 2=Settings
+  TileInfo tileInfo = TileInfo.title;
 
   static const _prefLanguage = 'language_code';
   static const _prefAccent = 'accent_color';
+  static const _prefStartupTab = 'startup_tab';
+  static const _prefTileInfo = 'tile_info';
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -23,6 +29,9 @@ class SettingsProvider extends ChangeNotifier {
     useDynamicColor = prefs.getBool(AppConstants.prefUseDynamicColor) ?? true;
     gridColumns = prefs.getInt(AppConstants.prefGridColumns) ?? 3;
     languageCode = prefs.getString(_prefLanguage) ?? 'en';
+    startupTab = prefs.getInt(_prefStartupTab) ?? 0;
+    final tileInfoIndex = prefs.getInt(_prefTileInfo);
+    if (tileInfoIndex != null) tileInfo = TileInfo.values[tileInfoIndex];
     final accentValue = prefs.getInt(_prefAccent);
     if (accentValue != null) accentColor = Color(accentValue);
     notifyListeners();
@@ -61,5 +70,19 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_prefAccent, color.toARGB32());
+  }
+
+  Future<void> setStartupTab(int index) async {
+    startupTab = index;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_prefStartupTab, index);
+  }
+
+  Future<void> setTileInfo(TileInfo info) async {
+    tileInfo = info;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_prefTileInfo, info.index);
   }
 }

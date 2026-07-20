@@ -31,5 +31,18 @@
   "save_to_device": "Save to device",
   "saved": "Saved to your gallery",
   "save_failed": "Save failed",
-  "share": "Share"
+  "share": "Share",
+  "startup_tab": "Startup tab",
+  "tile_info": "Info on thumbnails",
+  "info_none": "None",
+  "info_title": "Game title",
+  "info_title_date": "Title + date",
+  "select": "Select",
+  "select_all": "Select all",
+  "cancel": "Cancel",
+  "selected_count": "{n} selected",
+  "download_selected": "Download",
+  "share_selected": "Share",
+  "how_to_get_key": "1. Sign in on xbl.io with your Microsoft account\n2. Verify by SMS\n3. Profile > API Keys > Create",
+  "language_select": "Language"
 }
