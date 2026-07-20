@@ -62,6 +62,18 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
             Icon(Icons.wifi_off_rounded, size: 48, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 12),
             Text(l10n.t('load_error')),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                captures.error!,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
+              ),
+            ),
             const SizedBox(height: 12),
             FilledButton(onPressed: () => _load(refresh: true), child: Text(l10n.t('retry'))),
           ],

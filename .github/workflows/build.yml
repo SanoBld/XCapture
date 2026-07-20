@@ -14,8 +14,8 @@ jobs:
           flutter-version: '3.44.0'
           channel: 'stable'
       - run: flutter pub get
-      - name: Fix Android NDK version
-        run: sed -i '/^android {/a\    ndkVersion = "27.0.12077973"' android/app/build.gradle.kts
+      - name: Fix NDK + sign release with stable keystore
+        run: python3 .github/workflows/patch_android.py
       - name: Ensure required permissions
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
@@ -29,6 +29,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    env:
+      CL: /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2

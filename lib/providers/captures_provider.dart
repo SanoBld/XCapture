@@ -19,7 +19,7 @@ class CapturesProvider extends ChangeNotifier {
     try {
       screenshots = await service.fetchScreenshots();
     } catch (e) {
-      error = e.toString();
+      error = e.toString().replaceFirst('Exception: ', '');
     }
     loadingScreenshots = false;
     notifyListeners();
@@ -34,7 +34,7 @@ class CapturesProvider extends ChangeNotifier {
     try {
       clips = await service.fetchClips();
     } catch (e) {
-      error = e.toString();
+      error = e.toString().replaceFirst('Exception: ', '');
     }
     loadingClips = false;
     notifyListeners();
