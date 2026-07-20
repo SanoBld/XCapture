@@ -3,42 +3,92 @@ import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
+import '../core/localization/l10n_provider.dart';
 
-// App settings: theme, grid density, account, about
+// App settings: theme, language, accent, grid density, account, about
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
+
+  static const _accentOptions = [
+    Color(0xFF107C10), // Xbox green
+    Color(0xFF6750A4), // Purple
+    Color(0xFF1E88E5), // Blue
+    Color(0xFFE53935), // Red
+    Color(0xFFFB8C00), // Orange
+    Color(0xFF00897B), // Teal
+  ];
 
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final l10n = context.watch<L10nProvider>();
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const _SectionTitle('Appearance'),
+        _SectionTitle(l10n.t('appearance')),
         Card(
           child: Column(
             children: [
               ListTile(
-                title: const Text('Theme'),
+                title: Text(l10n.t('theme')),
                 trailing: DropdownButton<ThemeMode>(
                   value: settings.themeMode,
                   underline: const SizedBox(),
-                  items: const [
-                    DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
-                    DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
-                    DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                  items: [
+                    DropdownMenuItem(value: ThemeMode.system, child: Text(l10n.t('system'))),
+                    DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.t('light'))),
+                    DropdownMenuItem(value: ThemeMode.dark, child: Text(l10n.t('dark'))),
                   ],
                   onChanged: (v) => v != null ? settings.setThemeMode(v) : null,
                 ),
               ),
+              ListTile(
+                title: Text(l10n.t('language')),
+                trailing: DropdownButton<String>(
+                  value: settings.languageCode,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 'en', child: Text('English')),
+                    DropdownMenuItem(value: 'fr', child: Text('Français')),
+                  ],
+                  onChanged: (v) async {
+                    if (v == null) return;
+                    await settings.setLanguageCode(v);
+                    if (context.mounted) await context.read<L10nProvider>().load(v);
+                  },
+                ),
+              ),
               SwitchListTile(
-                title: const Text('Dynamic color (Material You)'),
-                subtitle: const Text('Use system wallpaper colors when available'),
+                title: Text(l10n.t('dynamic_color')),
+                subtitle: Text(l10n.t('dynamic_color_sub')),
                 value: settings.useDynamicColor,
                 onChanged: settings.setDynamicColor,
               ),
+              if (!settings.useDynamicColor)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(l10n.t('accent_color'))),
+                      for (final color in _accentOptions)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: GestureDetector(
+                            onTap: () => settings.setAccentColor(color),
+                            child: CircleAvatar(
+                              radius: 14,
+                              backgroundColor: color,
+                              child: settings.accentColor.toARGB32() == color.toARGB32()
+                                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ListTile(
-                title: const Text('Grid columns'),
+                title: Text(l10n.t('grid_columns')),
                 trailing: SegmentedButton<int>(
                   segments: const [
                     ButtonSegment(value: 2, label: Text('2')),
@@ -53,16 +103,16 @@ class SettingsPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('Account'),
+        _SectionTitle(l10n.t('account')),
         Card(
           child: ListTile(
             leading: const Icon(Icons.logout_rounded),
-            title: const Text('Disconnect Xbox account'),
+            title: Text(l10n.t('disconnect')),
             onTap: () => context.read<AuthProvider>().logout(),
           ),
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('About'),
+        _SectionTitle(l10n.t('about')),
         Card(
           child: FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
@@ -71,7 +121,7 @@ class SettingsPage extends StatelessWidget {
               return ListTile(
                 leading: const Icon(Icons.info_outline_rounded),
                 title: const Text('XCapture'),
-                subtitle: Text('Version $version · powered by OpenXBL'),
+                subtitle: Text('${l10n.t('version')} $version · OpenXBL'),
               );
             },
           ),

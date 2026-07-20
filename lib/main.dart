@@ -7,6 +7,7 @@ import 'app.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/captures_provider.dart';
+import 'core/localization/l10n_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,12 +31,15 @@ Future<void> main() async {
   await auth.loadFromStorage();
   final settings = SettingsProvider();
   await settings.load();
+  final l10n = L10nProvider();
+  await l10n.load(settings.languageCode);
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: auth),
         ChangeNotifierProvider.value(value: settings),
+        ChangeNotifierProvider.value(value: l10n),
         ChangeNotifierProvider(create: (_) => CapturesProvider()),
       ],
       child: const XCaptureApp(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
+import '../core/localization/l10n_provider.dart';
 
 // Prompts user for their OpenXBL API key (free, from xbl.io)
 class LoginPage extends StatefulWidget {
@@ -14,22 +15,27 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _controller = TextEditingController();
   bool _loading = false;
-  String? _errorText;
+  String? _errorKey;
 
   Future<void> _submit() async {
+    if (_controller.text.trim().isEmpty) return;
     setState(() {
       _loading = true;
-      _errorText = null;
+      _errorKey = null;
     });
-    final ok = await context.read<AuthProvider>().login(_controller.text.trim());
-    setState(() => _loading = false);
-    if (!ok && mounted) {
-      setState(() => _errorText = 'Invalid API key');
+    try {
+      final ok = await context.read<AuthProvider>().login(_controller.text.trim());
+      if (!ok && mounted) setState(() => _errorKey = 'invalid_key');
+    } catch (_) {
+      if (mounted) setState(() => _errorKey = 'connection_error');
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<L10nProvider>();
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -44,17 +50,18 @@ class _LoginPageState extends State<LoginPage> {
                   Icon(Icons.videogame_asset_rounded,
                       size: 64, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 16),
-                  Text('XCapture', style: Theme.of(context).textTheme.headlineMedium),
+                  Text(l10n.t('app_name'), style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 8),
-                  const Text('Enter your free OpenXBL API key to view your captures.'),
+                  Text(l10n.t('login_subtitle')),
                   const SizedBox(height: 24),
                   TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      labelText: 'API key',
-                      errorText: _errorText,
+                      labelText: l10n.t('api_key_label'),
+                      errorText: _errorKey != null ? l10n.t(_errorKey!) : null,
                     ),
                     obscureText: true,
+                    onSubmitted: (_) => _submit(),
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
@@ -62,12 +69,12 @@ class _LoginPageState extends State<LoginPage> {
                     child: _loading
                         ? const SizedBox(
                             width: 20, height: 20, child: CircularProgressIndicator())
-                        : const Text('Connect'),
+                        : Text(l10n.t('connect')),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => launchUrl(Uri.parse('https://xbl.io')),
-                    child: const Text('Get a free key on xbl.io'),
+                    child: Text(l10n.t('get_free_key')),
                   ),
                 ],
               ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/capture.dart';
+import '../core/localization/l10n_provider.dart';
 import 'capture_gallery_page.dart';
 import 'settings_page.dart';
 
@@ -20,20 +22,29 @@ class _HomeShellState extends State<HomeShell> {
     SettingsPage(),
   ];
 
-  static const _titles = ['Screenshots', 'Clips', 'Settings'];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<L10nProvider>();
+    final titles = [l10n.t('screenshots'), l10n.t('clips'), l10n.t('settings')];
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_index])),
+      appBar: AppBar(title: Text(titles[_index])),
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.image_outlined), selectedIcon: Icon(Icons.image), label: 'Screenshots'),
-          NavigationDestination(icon: Icon(Icons.videocam_outlined), selectedIcon: Icon(Icons.videocam), label: 'Clips'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Settings'),
+        destinations: [
+          NavigationDestination(
+              icon: const Icon(Icons.image_outlined),
+              selectedIcon: const Icon(Icons.image),
+              label: titles[0]),
+          NavigationDestination(
+              icon: const Icon(Icons.videocam_outlined),
+              selectedIcon: const Icon(Icons.videocam),
+              label: titles[1]),
+          NavigationDestination(
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings),
+              label: titles[2]),
         ],
       ),
     );

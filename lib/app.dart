@@ -20,8 +20,10 @@ class XCaptureApp extends StatelessWidget {
           title: AppConstants.appName,
           debugShowCheckedModeBanner: false,
           themeMode: settings.themeMode,
-          theme: AppTheme.light(settings.useDynamicColor ? lightDynamic : null),
-          darkTheme: AppTheme.dark(settings.useDynamicColor ? darkDynamic : null),
+          theme: AppTheme.light(
+              settings.useDynamicColor ? lightDynamic : null, settings.accentColor),
+          darkTheme: AppTheme.dark(
+              settings.useDynamicColor ? darkDynamic : null, settings.accentColor),
           home: context.watch<AuthProvider>().isLoggedIn ? const HomeShell() : const LoginPage(),
         );
       },

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../models/capture.dart';
 import '../services/download_service.dart';
+import '../core/localization/l10n_provider.dart';
+import '../widgets/full_video_player.dart';
 
 // Fullscreen viewer for a single screenshot or clip
 class CaptureViewerPage extends StatefulWidget {
@@ -37,19 +40,19 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
   }
 
   Future<void> _save() async {
+    final l10n = context.read<L10nProvider>();
     setState(() => _saving = true);
     try {
-      final file = await DownloadService.download(widget.capture);
+      await DownloadService.download(widget.capture);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Saved to ${file.path}')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.t('saved'))));
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Save failed')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.t('save_failed'))));
       }
     }
-    setState(() => _saving = false);
+    if (mounted) setState(() => _saving = false);
   }
 
   @override
@@ -77,29 +80,12 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
       body: Center(
         child: isClip
             ? (_videoController != null && _videoController!.value.isInitialized
-                ? AspectRatio(
-                    aspectRatio: _videoController!.value.aspectRatio,
-                    child: VideoPlayer(_videoController!),
-                  )
+                ? FullVideoPlayer(controller: _videoController!)
                 : const CircularProgressIndicator())
             : InteractiveViewer(
                 child: CachedNetworkImage(imageUrl: widget.capture.mediaUrl),
               ),
       ),
-      floatingActionButton: isClip && _videoController != null && _videoController!.value.isInitialized
-          ? FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _videoController!.value.isPlaying
-                      ? _videoController!.pause()
-                      : _videoController!.play();
-                });
-              },
-              child: Icon(_videoController!.value.isPlaying
-                  ? Icons.pause_rounded
-                  : Icons.play_arrow_rounded),
-            )
-          : null,
     );
   }
 }

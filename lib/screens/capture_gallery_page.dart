@@ -4,6 +4,7 @@ import '../models/capture.dart';
 import '../providers/auth_provider.dart';
 import '../providers/captures_provider.dart';
 import '../providers/settings_provider.dart';
+import '../core/localization/l10n_provider.dart';
 import '../widgets/capture_grid_tile.dart';
 import 'capture_viewer_page.dart';
 
@@ -18,6 +19,7 @@ class CaptureGalleryPage extends StatefulWidget {
 
 class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
   bool _isScreenshot = false;
+  String? _selectedGame;
 
   @override
   void initState() {
@@ -41,46 +43,100 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
   Widget build(BuildContext context) {
     final captures = context.watch<CapturesProvider>();
     final settings = context.watch<SettingsProvider>();
+    final l10n = context.watch<L10nProvider>();
     final list = _isScreenshot ? captures.screenshots : captures.clips;
     final loading = _isScreenshot ? captures.loadingScreenshots : captures.loadingClips;
+    final games = list.map((c) => c.gameTitle).toSet().toList()..sort();
+    final filtered =
+        _selectedGame == null ? list : list.where((c) => c.gameTitle == _selectedGame).toList();
+
+    if (loading && list.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (captures.error != null && list.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 48, color: Theme.of(context).colorScheme.outline),
+            const SizedBox(height: 12),
+            Text(l10n.t('load_error')),
+            const SizedBox(height: 12),
+            FilledButton(onPressed: () => _load(refresh: true), child: Text(l10n.t('retry'))),
+          ],
+        ),
+      );
+    }
 
     return RefreshIndicator(
       onRefresh: () => _load(refresh: true),
-      child: loading && list.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : list.isEmpty
-              ? ListView(
-                  children: [
-                    const SizedBox(height: 120),
-                    Icon(
-                      _isScreenshot ? Icons.image_outlined : Icons.videocam_outlined,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.outline,
+      child: Column(
+        children: [
+          if (games.length > 1)
+            SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      label: Text(l10n.t('all_games')),
+                      selected: _selectedGame == null,
+                      onSelected: (_) => setState(() => _selectedGame = null),
                     ),
-                    const SizedBox(height: 12),
-                    Center(child: Text('No ${_isScreenshot ? "screenshots" : "clips"} found')),
-                  ],
-                )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: settings.gridColumns,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 16 / 9,
                   ),
-                  itemCount: list.length,
-                  itemBuilder: (context, i) {
-                    final capture = list[i];
-                    return CaptureGridTile(
-                      capture: capture,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => CaptureViewerPage(capture: capture)),
+                  for (final game in games)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: ChoiceChip(
+                        label: Text(game),
+                        selected: _selectedGame == game,
+                        onSelected: (_) => setState(() => _selectedGame = game),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: filtered.isEmpty
+                ? ListView(
+                    children: [
+                      const SizedBox(height: 120),
+                      Icon(
+                        _isScreenshot ? Icons.image_outlined : Icons.videocam_outlined,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      const SizedBox(height: 12),
+                      Center(child: Text(l10n.t(_isScreenshot ? 'no_screenshots' : 'no_clips'))),
+                    ],
+                  )
+                : GridView.builder(
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: settings.gridColumns,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: 16 / 9,
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, i) {
+                      final capture = filtered[i];
+                      return CaptureGridTile(
+                        capture: capture,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => CaptureViewerPage(capture: capture)),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

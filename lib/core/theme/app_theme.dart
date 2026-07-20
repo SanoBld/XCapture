@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 
 // Material You theme builder, with optional dynamic color scheme
 class AppTheme {
-  static ThemeData light(ColorScheme? dynamicScheme) {
-    final scheme = dynamicScheme ??
-        ColorScheme.fromSeed(seedColor: const Color(0xFF107C10)); // Xbox green
+  static ThemeData light(ColorScheme? dynamicScheme, Color seed) {
+    final scheme = dynamicScheme ?? ColorScheme.fromSeed(seedColor: seed);
     return _build(scheme);
   }
 
-  static ThemeData dark(ColorScheme? dynamicScheme) {
+  static ThemeData dark(ColorScheme? dynamicScheme, Color seed) {
     final scheme = dynamicScheme ??
-        ColorScheme.fromSeed(
-          seedColor: const Color(0xFF107C10),
-          brightness: Brightness.dark,
-        );
+        ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
     return _build(scheme);
   }
 

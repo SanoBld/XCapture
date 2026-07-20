@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../core/constants.dart';
 import '../models/capture.dart';
@@ -13,33 +14,34 @@ class OpenXblService {
         'Accept': 'application/json',
       };
 
-  Future<List<Capture>> fetchScreenshots({String continuationToken = ''}) async {
-    final uri = Uri.parse(
-        '${AppConstants.openXblBaseUrl}/dvr/screenshots?maxItems=100&continuationToken=$continuationToken');
-    final res = await http.get(uri, headers: _headers);
-    if (res.statusCode != 200) {
-      throw Exception('OpenXBL error ${res.statusCode}');
+  Future<http.Response> _get(String path) async {
+    try {
+      return await http
+          .get(Uri.parse('${AppConstants.openXblBaseUrl}/$path'), headers: _headers)
+          .timeout(const Duration(seconds: 15));
+    } on SocketException {
+      throw Exception('network_error');
     }
+  }
+
+  Future<List<Capture>> fetchScreenshots() async {
+    final res = await _get('dvr/screenshots');
+    if (res.statusCode != 200) throw Exception('OpenXBL error ${res.statusCode}');
     final data = jsonDecode(res.body);
     final values = (data['values'] as List?) ?? [];
     return values.map((e) => Capture.fromScreenshotJson(e)).toList();
   }
 
-  Future<List<Capture>> fetchClips({String continuationToken = ''}) async {
-    final uri = Uri.parse(
-        '${AppConstants.openXblBaseUrl}/dvr/gameclips?maxItems=100&continuationToken=$continuationToken');
-    final res = await http.get(uri, headers: _headers);
-    if (res.statusCode != 200) {
-      throw Exception('OpenXBL error ${res.statusCode}');
-    }
+  Future<List<Capture>> fetchClips() async {
+    final res = await _get('dvr/gameclips');
+    if (res.statusCode != 200) throw Exception('OpenXBL error ${res.statusCode}');
     final data = jsonDecode(res.body);
     final values = (data['values'] as List?) ?? [];
     return values.map((e) => Capture.fromClipJson(e)).toList();
   }
 
   Future<bool> validateKey() async {
-    final uri = Uri.parse('${AppConstants.openXblBaseUrl}/account');
-    final res = await http.get(uri, headers: _headers);
+    final res = await _get('account');
     return res.statusCode == 200;
   }
 }
