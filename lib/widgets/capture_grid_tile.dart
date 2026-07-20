@@ -44,7 +44,16 @@ class CaptureGridTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            CachedNetworkImage(
+            capture.thumbnailUrl.isEmpty
+                ? Container(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Icon(
+                      capture.type == CaptureType.clip
+                          ? Icons.videocam_off_outlined
+                          : Icons.broken_image_outlined,
+                    ),
+                  )
+                : CachedNetworkImage(
               imageUrl: capture.thumbnailUrl,
               fit: BoxFit.cover,
               httpHeaders: const {

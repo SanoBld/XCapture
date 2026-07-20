@@ -226,8 +226,20 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.t(_isScreenshot ? 'screenshots' : 'clips'),
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 22)),
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(l10n.t(_isScreenshot ? 'screenshots' : 'clips'),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 22)),
+            const SizedBox(width: 8),
+            Text('${filtered.length}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline)),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: l10n.t('layout'),
@@ -250,20 +262,6 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
             onPressed: () => _openFilters(settings, l10n),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(28),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('${filtered.length}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: Theme.of(context).colorScheme.outline)),
-            ),
-          ),
-        ),
       ),
       body: Stack(
         children: [

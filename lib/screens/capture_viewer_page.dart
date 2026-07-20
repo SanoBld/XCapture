@@ -26,16 +26,25 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
   bool _saving = false;
   bool _fullscreen = false;
 
+  bool _videoUnavailable = false;
+
   @override
   void initState() {
     super.initState();
     if (widget.capture.type == CaptureType.clip) {
+      if (widget.capture.mediaUrl.isEmpty) {
+        _videoUnavailable = true;
+        return;
+      }
       _videoController = VideoPlayerController.networkUrl(
         Uri.parse(widget.capture.mediaUrl),
         httpHeaders: const {'User-Agent': _browserUA},
-      )..initialize().then((_) {
+      )
+        ..initialize().timeout(const Duration(seconds: 20)).then((_) {
           setState(() {});
           _videoController!.play();
+        }).catchError((_) {
+          if (mounted) setState(() => _videoUnavailable = true);
         });
     }
   }
@@ -110,9 +119,11 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
         child: SizedBox.expand(
           child: isClip
               ? Center(
-                  child: _videoController != null && _videoController!.value.isInitialized
-                      ? FullVideoPlayer(controller: _videoController!)
-                      : const CircularProgressIndicator(),
+                  child: _videoUnavailable
+                      ? const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 48)
+                      : (_videoController != null && _videoController!.value.isInitialized
+                          ? FullVideoPlayer(controller: _videoController!)
+                          : const CircularProgressIndicator()),
                 )
               : InteractiveViewer(
                   minScale: 1,
