@@ -52,5 +52,6 @@
   "range_today": "Aujourd'hui",
   "range_week": "7 jours",
   "range_month": "Ce mois",
-  "group_by_date": "Grouper par date"
+  "group_by_date": "Grouper par date",
+  "layout": "Disposition"
 }

@@ -47,8 +47,13 @@ class CaptureGridTile extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: capture.thumbnailUrl,
               fit: BoxFit.cover,
+              httpHeaders: const {
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+              },
               placeholder: (c, u) => Container(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
               errorWidget: (c, u, e) => Container(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,

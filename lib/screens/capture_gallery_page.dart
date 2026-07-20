@@ -160,24 +160,6 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
                 ],
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(l10n.t('sort'), style: Theme.of(context).textTheme.titleSmall),
-                  SegmentedButton<SortOrder>(
-                    segments: [
-                      ButtonSegment(value: SortOrder.newest, label: Text(l10n.t('newest'))),
-                      ButtonSegment(value: SortOrder.oldest, label: Text(l10n.t('oldest'))),
-                    ],
-                    selected: {_sort},
-                    onSelectionChanged: (s) {
-                      setState(() => _sort = s.first);
-                      setSheetState(() {});
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 children: [
@@ -247,6 +229,22 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
         title: Text(l10n.t(_isScreenshot ? 'screenshots' : 'clips'),
             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 22)),
         actions: [
+          IconButton(
+            tooltip: l10n.t('layout'),
+            icon: Icon(settings.layout == GalleryLayout.grid
+                ? Icons.view_agenda_rounded
+                : Icons.grid_view_rounded),
+            onPressed: () => settings.setLayout(
+                settings.layout == GalleryLayout.grid ? GalleryLayout.list : GalleryLayout.grid),
+          ),
+          IconButton(
+            tooltip: l10n.t('sort'),
+            icon: Icon(_sort == SortOrder.newest
+                ? Icons.south_rounded
+                : Icons.north_rounded),
+            onPressed: () => setState(
+                () => _sort = _sort == SortOrder.newest ? SortOrder.oldest : SortOrder.newest),
+          ),
           IconButton(
             icon: const Icon(Icons.tune_rounded),
             onPressed: () => _openFilters(settings, l10n),
@@ -388,16 +386,17 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
   }
 
   Widget _buildFlatGrid(SettingsProvider settings, List<Capture> filtered) {
+    final isList = settings.layout == GalleryLayout.list;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = _responsiveColumns(constraints.maxWidth, settings.gridColumns);
+        final columns = isList ? 1 : _responsiveColumns(constraints.maxWidth, settings.gridColumns);
         return GridView.builder(
           padding: const EdgeInsets.all(12),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
-            childAspectRatio: 16 / 9,
+            childAspectRatio: isList ? 2.4 : 16 / 9,
           ),
           itemCount: filtered.length,
           itemBuilder: (context, i) => _tile(filtered[i], settings),
@@ -413,7 +412,8 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
     }
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = _responsiveColumns(constraints.maxWidth, settings.gridColumns);
+        final isList = settings.layout == GalleryLayout.list;
+        final columns = isList ? 1 : _responsiveColumns(constraints.maxWidth, settings.gridColumns);
         return Row(
           children: [
             Expanded(
@@ -436,7 +436,7 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
                           crossAxisCount: columns,
                           crossAxisSpacing: 8,
                           mainAxisSpacing: 8,
-                          childAspectRatio: 16 / 9,
+                          childAspectRatio: isList ? 2.4 : 16 / 9,
                         ),
                         itemCount: entry.value.length,
                         itemBuilder: (context, i) => _tile(entry.value[i], settings),
