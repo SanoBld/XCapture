@@ -35,7 +35,11 @@ class CaptureGridTile extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(16),
-      child: ClipRRect(
+      child: AnimatedScale(
+        scale: selected ? 0.94 : 1,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           fit: StackFit.expand,
@@ -102,18 +106,27 @@ class CaptureGridTile extends StatelessWidget {
                   ),
                 ),
               ),
-            if (selectionMode)
-              Positioned(
+            AnimatedOpacity(
+              opacity: selectionMode ? 1 : 0,
+              duration: const Duration(milliseconds: 150),
+              child: Positioned(
                 left: 6,
                 top: 6,
-                child: Icon(
-                  selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                  color: selected ? Theme.of(context).colorScheme.primary : Colors.white,
-                  size: 22,
+                child: AnimatedScale(
+                  scale: selected ? 1.15 : 1,
+                  duration: const Duration(milliseconds: 150),
+                  child: Icon(
+                    selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                    color: selected ? Theme.of(context).colorScheme.primary : Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
-            if (selected)
-              Positioned.fill(
+            ),
+            AnimatedOpacity(
+              opacity: selected ? 1 : 0,
+              duration: const Duration(milliseconds: 150),
+              child: Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: Theme.of(context).colorScheme.primary, width: 3),
@@ -121,7 +134,9 @@ class CaptureGridTile extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
           ],
+        ),
         ),
       ),
     );

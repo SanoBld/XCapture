@@ -6,7 +6,8 @@ import '../providers/settings_provider.dart';
 import 'capture_gallery_page.dart';
 import 'settings_page.dart';
 
-// Root shell holding the 3 main tabs: Screenshots, Clips, Settings
+// Root shell holding the 3 main tabs: Screenshots, Clips, Settings.
+// Each tab owns its own AppBar/header for a more tailored look.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -29,7 +30,6 @@ class _HomeShellState extends State<HomeShell> {
     final l10n = context.watch<L10nProvider>();
     final titles = [l10n.t('screenshots'), l10n.t('clips'), l10n.t('settings')];
     return Scaffold(
-      appBar: AppBar(title: Text(titles[_index!])),
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index!,

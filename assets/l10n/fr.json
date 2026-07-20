@@ -44,5 +44,13 @@
   "download_selected": "Télécharger",
   "share_selected": "Partager",
   "how_to_get_key": "1. Connecte-toi sur xbl.io avec ton compte Microsoft\n2. Vérifie par SMS\n3. Profil > API Keys > Create",
-  "language_select": "Langue"
+  "language_select": "Langue",
+  "sort": "Tri",
+  "newest": "Récent",
+  "oldest": "Ancien",
+  "range_all": "Tout",
+  "range_today": "Aujourd'hui",
+  "range_week": "7 jours",
+  "range_month": "Ce mois",
+  "group_by_date": "Grouper par date"
 }

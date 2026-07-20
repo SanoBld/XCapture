@@ -22,14 +22,30 @@ class AppTheme {
         backgroundColor: scheme.surface,
         surfaceTintColor: scheme.surfaceTint,
         elevation: 0,
+        scrolledUnderElevation: 1,
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,
         indicatorColor: scheme.secondaryContainer,
+        elevation: 0,
       ),
       cardTheme: CardThemeData(
         color: scheme.surfaceContainer,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      chipTheme: ChipThemeData(
+        side: BorderSide.none,
+        backgroundColor: scheme.surfaceContainerHighest,
+        selectedColor: scheme.secondaryContainer,
+        labelStyle: TextStyle(color: scheme.onSurface),
+        shape: const StadiumBorder(),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: scheme.surfaceContainerHigh,
+        surfaceTintColor: Colors.transparent,
+        elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
