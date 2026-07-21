@@ -134,7 +134,7 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _SectionTitle('Debug'),
+          const _SectionTitle('Debug'),
           Card(
             child: Column(
               children: [
