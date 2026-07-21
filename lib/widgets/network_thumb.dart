@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +8,36 @@ const _browserUA =
 
 // Small in-memory cache so scrolling back doesn't re-download the same thumbnail
 final Map<String, Uint8List> _thumbCache = {};
+
+// FIX: grid views can build 20-30 NetworkThumb widgets at once, all firing
+// http.get() in the same frame. The OpenXBL free API rate-limits these
+// requests, so most of them fail/timeout and show as gray boxes -- even
+// though a single request (like opening the viewer) works fine.
+// This simple semaphore limits how many downloads run at the same time,
+// queueing the rest instead of firing them all in parallel.
+class _DownloadQueue {
+  static const int _maxConcurrent = 4;
+  static int _active = 0;
+  static final List<Completer<void>> _waiting = [];
+
+  static Future<void> acquire() async {
+    if (_active < _maxConcurrent) {
+      _active++;
+      return;
+    }
+    final completer = Completer<void>();
+    _waiting.add(completer);
+    await completer.future;
+    _active++;
+  }
+
+  static void release() {
+    _active--;
+    if (_waiting.isNotEmpty) {
+      _waiting.removeAt(0).complete();
+    }
+  }
+}
 
 // Fetches image bytes manually (same proven http client as the API calls) instead of
 // relying on cached_network_image, which was silently hanging on some networks.
@@ -37,16 +68,39 @@ class _NetworkThumbState extends State<NetworkThumb> {
     _future = _load();
   }
 
+  @override
+  void didUpdateWidget(covariant NetworkThumb oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload if the tile got reused for a different capture (grid recycling)
+    if (oldWidget.url != widget.url) {
+      _future = _load();
+    }
+  }
+
   Future<Uint8List> _load() async {
     final cached = _thumbCache[widget.url];
     if (cached != null) return cached;
-    final res = await http
-        .get(Uri.parse(widget.url), headers: const {'User-Agent': _browserUA})
-        .timeout(const Duration(seconds: 15));
-    if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
-    _thumbCache[widget.url] = res.bodyBytes;
-    if (_thumbCache.length > 200) _thumbCache.remove(_thumbCache.keys.first);
-    return res.bodyBytes;
+
+    // FIX: wait for a free download slot instead of hitting the API all at once
+    await _DownloadQueue.acquire();
+    try {
+      // FIX: retry once on rate-limit (HTTP 429) after a short delay
+      http.Response res = await http
+          .get(Uri.parse(widget.url), headers: const {'User-Agent': _browserUA})
+          .timeout(const Duration(seconds: 15));
+      if (res.statusCode == 429) {
+        await Future.delayed(const Duration(milliseconds: 800));
+        res = await http
+            .get(Uri.parse(widget.url), headers: const {'User-Agent': _browserUA})
+            .timeout(const Duration(seconds: 15));
+      }
+      if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
+      _thumbCache[widget.url] = res.bodyBytes;
+      if (_thumbCache.length > 200) _thumbCache.remove(_thumbCache.keys.first);
+      return res.bodyBytes;
+    } finally {
+      _DownloadQueue.release();
+    }
   }
 
   @override
