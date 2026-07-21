@@ -94,7 +94,10 @@ class _NetworkThumbState extends State<NetworkThumb> {
             .get(Uri.parse(widget.url), headers: const {'User-Agent': _browserUA})
             .timeout(const Duration(seconds: 15));
       }
-      if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
+      // FIX: some OpenXBL urls return 200 with empty/dead bytes -> treat as error
+      if (res.statusCode != 200 || res.bodyBytes.isEmpty) {
+        throw Exception('HTTP ${res.statusCode} (${res.bodyBytes.length} bytes)');
+      }
       _thumbCache[widget.url] = res.bodyBytes;
       if (_thumbCache.length > 200) _thumbCache.remove(_thumbCache.keys.first);
       return res.bodyBytes;
@@ -114,7 +117,16 @@ class _NetworkThumbState extends State<NetworkThumb> {
         if (snapshot.hasError || !snapshot.hasData) {
           return widget.errorBuilder(context);
         }
-        return Image.memory(snapshot.data!, fit: widget.fit, gaplessPlayback: true);
+        // FIX: this is the real bug - Image.memory can silently fail to
+        // decode bad bytes (invalid/corrupt image) and render nothing at
+        // all, which looked like a permanent gray box. errorBuilder catches
+        // that and falls back to a visible broken-image icon instead.
+        return Image.memory(
+          snapshot.data!,
+          fit: widget.fit,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => widget.errorBuilder(context),
+        );
       },
     );
   }
