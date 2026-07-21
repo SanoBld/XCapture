@@ -113,10 +113,16 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
                 ),
               ],
             ),
-      body: GestureDetector(
-        onDoubleTap: _isClip ? (_fullscreen ? _exitFullscreen : _enterFullscreen) : null,
-        child: SizedBox.expand(
-          child: _isClip ? _buildVideo() : _buildImage(),
+      // FIX: SafeArea so the control bar doesn't sit flush against the
+      // bottom system nav bar (was cramped before)
+      body: SafeArea(
+        top: false,
+        bottom: !_fullscreen,
+        child: GestureDetector(
+          onDoubleTap: _isClip ? (_fullscreen ? _exitFullscreen : _enterFullscreen) : null,
+          child: SizedBox.expand(
+            child: _isClip ? _buildVideo() : _buildImage(),
+          ),
         ),
       ),
     );
@@ -147,9 +153,12 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
       seekBarColor: Colors.white24,
       seekBarBufferColor: Colors.white38,
       buttonBarButtonColor: Colors.white,
-      bottomButtonBarMargin: const EdgeInsets.symmetric(horizontal: 8),
-      brightnessGesture: true,
-      volumeGesture: true,
+      // FIX: give the control bar room to breathe instead of hugging the edge
+      bottomButtonBarMargin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      seekBarMargin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      // FIX: swipe gestures were accidentally changing brightness/volume, disabled
+      brightnessGesture: false,
+      volumeGesture: false,
       speedUpOnLongPress: true,
       shiftSubtitlesOnControlsVisibilityChange: false,
     );
