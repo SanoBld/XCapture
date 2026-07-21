@@ -67,7 +67,13 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
   @override
   void dispose() {
     _player?.dispose();
-    if (_fullscreen) _exitFullscreen();
+    // FIX: was calling _exitFullscreen() here, which does setState() -
+    // not allowed after dispose(), it crashed silently and left the
+    // status bar/battery hidden app-wide. Reset system UI directly instead.
+    if (_fullscreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    }
     super.dispose();
   }
 

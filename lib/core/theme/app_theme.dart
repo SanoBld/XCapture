@@ -3,13 +3,21 @@ import 'package:flutter/material.dart';
 // Material You theme builder, with optional dynamic color scheme
 class AppTheme {
   static ThemeData light(ColorScheme? dynamicScheme, Color seed) {
-    final scheme = dynamicScheme ?? ColorScheme.fromSeed(seedColor: seed);
+    // FIX: some devices' dynamic (wallpaper) scheme has almost no contrast
+    // between surface and card colors (looked flat black&white). Re-generate
+    // a full Material 3 palette using the wallpaper's primary color as seed
+    // instead of using the raw OS scheme directly.
+    final scheme = ColorScheme.fromSeed(
+      seedColor: dynamicScheme?.primary ?? seed,
+    );
     return _build(scheme);
   }
 
   static ThemeData dark(ColorScheme? dynamicScheme, Color seed) {
-    final scheme = dynamicScheme ??
-        ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: dynamicScheme?.primary ?? seed,
+      brightness: Brightness.dark,
+    );
     return _build(scheme);
   }
 
