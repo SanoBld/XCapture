@@ -36,16 +36,20 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
         _videoUnavailable = true;
         return;
       }
-      _videoController = VideoPlayerController.networkUrl(
-        Uri.parse(widget.capture.mediaUrl),
-        httpHeaders: const {'User-Agent': _browserUA},
-      )
-        ..initialize().timeout(const Duration(seconds: 20)).then((_) {
-          setState(() {});
-          _videoController!.play();
-        }).catchError((_) {
-          if (mounted) setState(() => _videoUnavailable = true);
-        });
+      try {
+        _videoController = VideoPlayerController.networkUrl(
+          Uri.parse(widget.capture.mediaUrl),
+          httpHeaders: const {'User-Agent': _browserUA},
+        )
+          ..initialize().timeout(const Duration(seconds: 20)).then((_) {
+            setState(() {});
+            _videoController!.play();
+          }).catchError((_) {
+            if (mounted) setState(() => _videoUnavailable = true);
+          });
+      } catch (_) {
+        _videoUnavailable = true;
+      }
     }
   }
 

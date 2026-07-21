@@ -7,7 +7,6 @@ import '../providers/auth_provider.dart';
 import '../providers/captures_provider.dart';
 import '../providers/settings_provider.dart';
 import '../core/localization/l10n_provider.dart';
-import '../services/openxbl_service.dart';
 import '../services/download_service.dart';
 import '../widgets/capture_grid_tile.dart';
 import '../widgets/styled_dropdown.dart';
@@ -362,16 +361,6 @@ class _CaptureGalleryPageState extends State<CaptureGalleryPage> {
                       ),
                       const SizedBox(height: 12),
                       Center(child: Text(l10n.t(_isScreenshot ? 'no_screenshots' : 'no_clips'))),
-                      if (OpenXblService.lastRawResponse.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                          child: Text(
-                            'Debug: ${OpenXblService.lastRawResponse}',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.outline, fontSize: 10),
-                          ),
-                        ),
                     ],
                   )
                 : _groupByDate

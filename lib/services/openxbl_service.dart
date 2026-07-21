@@ -34,7 +34,7 @@ class OpenXblService {
     if (res.statusCode != 200) {
       throw Exception('OpenXBL HTTP ${res.statusCode}: ${res.body}');
     }
-    lastRawResponse = res.body.length > 500 ? res.body.substring(0, 500) : res.body;
+    lastRawResponse = res.body;
     var data = jsonDecode(res.body) as Map<String, dynamic>;
     // OpenXBL sometimes wraps the real payload inside a "content" key
     if (data['content'] is Map) data = data['content'] as Map<String, dynamic>;

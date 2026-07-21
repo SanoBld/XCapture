@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../core/localization/l10n_provider.dart';
+import '../services/openxbl_service.dart';
 import '../widgets/styled_dropdown.dart';
 
 // App settings: theme, language, accent, startup tab, account, about
@@ -131,6 +133,60 @@ class SettingsPage extends StatelessWidget {
               },
             ),
           ),
+          const SizedBox(height: 24),
+          _SectionTitle('Debug'),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.image_search_rounded),
+                  title: const Text('JSON captures'),
+                  onTap: () => _showRawJson(context, isClip: false),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.video_settings_rounded),
+                  title: const Text('JSON clips'),
+                  onTap: () => _showRawJson(context, isClip: true),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showRawJson(BuildContext context, {required bool isClip}) async {
+    final service = context.read<AuthProvider>().service;
+    if (service == null) return;
+    showDialog(
+      context: context,
+      builder: (_) => const AlertDialog(content: SizedBox(height: 60, child: Center(child: CircularProgressIndicator()))),
+    );
+    String text;
+    try {
+      isClip ? await service.fetchClips() : await service.fetchScreenshots();
+      text = OpenXblService.lastRawResponse;
+    } catch (e) {
+      text = 'Error: $e';
+    }
+    if (!context.mounted) return;
+    Navigator.pop(context);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isClip ? 'JSON clips' : 'JSON captures'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(child: SelectableText(text, style: const TextStyle(fontSize: 11))),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Clipboard.setData(ClipboardData(text: text)),
+            child: const Text('Copier'),
+          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Fermer')),
         ],
       ),
     );
