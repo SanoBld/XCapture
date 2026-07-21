@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../models/capture.dart';
 import '../services/download_service.dart';
 import '../core/localization/l10n_provider.dart';
+import '../widgets/network_thumb.dart';
 
 const _browserUA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
@@ -140,22 +140,50 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
       );
     }
     if (_videoController == null) return const Center(child: CircularProgressIndicator());
-    return Video(controller: _videoController!, controls: AdaptiveVideoControls);
+    final scheme = Theme.of(context).colorScheme;
+    final themeData = MaterialVideoControlsThemeData(
+      seekBarPositionColor: scheme.primary,
+      seekBarThumbColor: scheme.primary,
+      seekBarColor: Colors.white24,
+      seekBarBufferColor: Colors.white38,
+      buttonBarButtonColor: Colors.white,
+      bottomButtonBarMargin: const EdgeInsets.symmetric(horizontal: 8),
+      brightnessGesture: true,
+      volumeGesture: true,
+      speedUpOnLongPress: true,
+      shiftSubtitlesOnControlsVisibilityChange: false,
+    );
+    final desktopThemeData = MaterialDesktopVideoControlsThemeData(
+      seekBarPositionColor: scheme.primary,
+      seekBarThumbColor: scheme.primary,
+      seekBarColor: Colors.white24,
+      seekBarBufferColor: Colors.white38,
+      buttonBarButtonColor: Colors.white,
+      toggleFullscreenOnDoublePress: true,
+    );
+    return MaterialVideoControlsTheme(
+      normal: themeData,
+      fullscreen: themeData,
+      child: MaterialDesktopVideoControlsTheme(
+        normal: desktopThemeData,
+        fullscreen: desktopThemeData,
+        child: Video(controller: _videoController!, controls: AdaptiveVideoControls),
+      ),
+    );
   }
 
   Widget _buildImage() {
     return InteractiveViewer(
       minScale: 1,
       maxScale: 5,
-      child: CachedNetworkImage(
-        imageUrl: widget.capture.mediaUrl,
-        httpHeaders: const {'User-Agent': _browserUA},
-        fit: BoxFit.contain,
-        width: double.infinity,
-        height: double.infinity,
-        placeholder: (c, u) => const Center(child: CircularProgressIndicator()),
-        errorWidget: (c, u, e) =>
-            const Center(child: Icon(Icons.broken_image_outlined, color: Colors.white54, size: 48)),
+      child: SizedBox.expand(
+        child: NetworkThumb(
+          url: widget.capture.mediaUrl,
+          fit: BoxFit.contain,
+          placeholderBuilder: (c) => const Center(child: CircularProgressIndicator()),
+          errorBuilder: (c) =>
+              const Center(child: Icon(Icons.broken_image_outlined, color: Colors.white54, size: 48)),
+        ),
       ),
     );
   }

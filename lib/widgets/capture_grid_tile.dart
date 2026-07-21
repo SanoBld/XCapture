@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../models/capture.dart';
 import '../providers/settings_provider.dart';
+import 'network_thumb.dart';
 
 // Single grid item: thumbnail, duration badge, optional title/date, selection checkbox
 class CaptureGridTile extends StatelessWidget {
@@ -53,22 +53,17 @@ class CaptureGridTile extends StatelessWidget {
                           : Icons.broken_image_outlined,
                     ),
                   )
-                : CachedNetworkImage(
-              imageUrl: capture.thumbnailUrl,
-              fit: BoxFit.cover,
-              httpHeaders: const {
-                'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-              },
-              placeholder: (c, u) => Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
-              errorWidget: (c, u, e) => Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: const Icon(Icons.broken_image_outlined),
-              ),
-            ),
+                : NetworkThumb(
+                    url: capture.thumbnailUrl,
+                    placeholderBuilder: (c) => Container(
+                      color: Theme.of(c).colorScheme.surfaceContainerHighest,
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorBuilder: (c) => Container(
+                      color: Theme.of(c).colorScheme.surfaceContainerHighest,
+                      child: const Icon(Icons.broken_image_outlined),
+                    ),
+                  ),
             if (tileInfo != TileInfo.none)
               Positioned(
                 left: 0,
