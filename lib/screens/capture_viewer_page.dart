@@ -27,6 +27,7 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
   bool _fullscreen = false;
 
   bool _videoUnavailable = false;
+  String? _videoError;
 
   @override
   void initState() {
@@ -44,11 +45,15 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
           ..initialize().timeout(const Duration(seconds: 20)).then((_) {
             setState(() {});
             _videoController!.play();
-          }).catchError((_) {
-            if (mounted) setState(() => _videoUnavailable = true);
+          }).catchError((e) {
+            if (mounted) setState(() {
+              _videoUnavailable = true;
+              _videoError = e.toString();
+            });
           });
-      } catch (_) {
+      } catch (e) {
         _videoUnavailable = true;
+        _videoError = e.toString();
       }
     }
   }
@@ -124,7 +129,19 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
           child: isClip
               ? Center(
                   child: _videoUnavailable
-                      ? const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 48)
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 48),
+                            if (_videoError != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                child: Text(_videoError!,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                              ),
+                          ],
+                        )
                       : (_videoController != null && _videoController!.value.isInitialized
                           ? FullVideoPlayer(controller: _videoController!)
                           : const CircularProgressIndicator()),
