@@ -115,7 +115,25 @@ class _NetworkThumbState extends State<NetworkThumb> {
           return widget.placeholderBuilder(context);
         }
         if (snapshot.hasError || !snapshot.hasData) {
-          return widget.errorBuilder(context);
+          // TEMP DEBUG: show the real error on the tile so we can diagnose
+          // why the thumbnail failed (remove once fixed for good)
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              widget.errorBuilder(context),
+              Positioned(
+                left: 2,
+                right: 2,
+                bottom: 2,
+                child: Text(
+                  '${snapshot.error}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.red, fontSize: 8),
+                ),
+              ),
+            ],
+          );
         }
         // FIX: this is the real bug - Image.memory can silently fail to
         // decode bad bytes (invalid/corrupt image) and render nothing at

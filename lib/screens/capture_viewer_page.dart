@@ -30,6 +30,21 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
 
   bool get _isClip => widget.capture.type == CaptureType.clip;
 
+  // Material You 3 style pill/circle button, bigger tap target than plain IconButton
+  Widget _roundAction(IconData icon, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Container(
+        decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+        child: IconButton(
+          icon: Icon(icon, color: Colors.white, size: 22),
+          iconSize: 22,
+          onPressed: onPressed,
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -93,24 +108,33 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
           ? null
           : AppBar(
               backgroundColor: Colors.transparent,
+              elevation: 0,
+              // FIX: force white text/icons + a dark scrim behind the bar so
+              // the title stays readable no matter what's in the video/photo
+              iconTheme: const IconThemeData(color: Colors.white),
+              titleTextStyle:
+                  const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.black87, Colors.transparent],
+                  ),
+                ),
+              ),
               title: Text(widget.capture.gameTitle),
               actions: [
-                if (_isClip)
-                  IconButton(
-                    icon: const Icon(Icons.fullscreen_rounded),
-                    onPressed: _enterFullscreen,
-                  ),
-                IconButton(
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.download_rounded),
-                  onPressed: _saving ? null : _save,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.share_rounded),
-                  onPressed: () => Share.share(widget.capture.mediaUrl),
-                ),
+                if (_isClip) _roundAction(Icons.fullscreen_rounded, _enterFullscreen),
+                _saving
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                            width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                      )
+                    : _roundAction(Icons.download_rounded, _save),
+                _roundAction(Icons.share_rounded, () => Share.share(widget.capture.mediaUrl)),
+                const SizedBox(width: 4),
               ],
             ),
       // FIX: SafeArea so the control bar doesn't sit flush against the
@@ -153,9 +177,11 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
       seekBarColor: Colors.white24,
       seekBarBufferColor: Colors.white38,
       buttonBarButtonColor: Colors.white,
-      // FIX: give the control bar room to breathe instead of hugging the edge
-      bottomButtonBarMargin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-      seekBarMargin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      // FIX: bigger rounder play button + more breathing room (Material You 3 look)
+      bottomButtonBarMargin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      seekBarMargin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      seekBarHeight: 4,
+      seekBarThumbSize: 14,
       // FIX: swipe gestures were accidentally changing brightness/volume, disabled
       brightnessGesture: false,
       volumeGesture: false,
