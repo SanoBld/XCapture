@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:media_kit/media_kit.dart';
 import 'app.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
@@ -11,6 +12,7 @@ import 'core/localization/l10n_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
 
   // Desktop window setup (Windows/Linux)
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {

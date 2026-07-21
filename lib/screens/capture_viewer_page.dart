@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:video_player/video_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../models/capture.dart';
 import '../services/download_service.dart';
 import '../core/localization/l10n_provider.dart';
-import '../widgets/full_video_player.dart';
 
 const _browserUA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
@@ -22,45 +22,36 @@ class CaptureViewerPage extends StatefulWidget {
 }
 
 class _CaptureViewerPageState extends State<CaptureViewerPage> {
-  VideoPlayerController? _videoController;
+  Player? _player;
+  VideoController? _videoController;
   bool _saving = false;
   bool _fullscreen = false;
-
-  bool _videoUnavailable = false;
   String? _videoError;
+
+  bool get _isClip => widget.capture.type == CaptureType.clip;
 
   @override
   void initState() {
     super.initState();
-    if (widget.capture.type == CaptureType.clip) {
+    if (_isClip) {
       if (widget.capture.mediaUrl.isEmpty) {
-        _videoUnavailable = true;
+        _videoError = 'no_media_url';
         return;
       }
-      try {
-        _videoController = VideoPlayerController.networkUrl(
-          Uri.parse(widget.capture.mediaUrl),
-          httpHeaders: const {'User-Agent': _browserUA},
-        )
-          ..initialize().timeout(const Duration(seconds: 20)).then((_) {
-            setState(() {});
-            _videoController!.play();
-          }).catchError((e) {
-            if (mounted) setState(() {
-              _videoUnavailable = true;
-              _videoError = e.toString();
-            });
-          });
-      } catch (e) {
-        _videoUnavailable = true;
-        _videoError = e.toString();
-      }
+      _player = Player();
+      _videoController = VideoController(_player!);
+      _player!.stream.error.listen((e) {
+        if (mounted) setState(() => _videoError = e);
+      });
+      _player!.open(
+        Media(widget.capture.mediaUrl, httpHeaders: const {'User-Agent': _browserUA}),
+      );
     }
   }
 
   @override
   void dispose() {
-    _videoController?.dispose();
+    _player?.dispose();
     if (_fullscreen) _exitFullscreen();
     super.dispose();
   }
@@ -96,7 +87,6 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isClip = widget.capture.type == CaptureType.clip;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: _fullscreen
@@ -105,7 +95,7 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
               backgroundColor: Colors.transparent,
               title: Text(widget.capture.gameTitle),
               actions: [
-                if (isClip)
+                if (_isClip)
                   IconButton(
                     icon: const Icon(Icons.fullscreen_rounded),
                     onPressed: _enterFullscreen,
@@ -124,43 +114,48 @@ class _CaptureViewerPageState extends State<CaptureViewerPage> {
               ],
             ),
       body: GestureDetector(
-        onDoubleTap: isClip ? (_fullscreen ? _exitFullscreen : _enterFullscreen) : null,
+        onDoubleTap: _isClip ? (_fullscreen ? _exitFullscreen : _enterFullscreen) : null,
         child: SizedBox.expand(
-          child: isClip
-              ? Center(
-                  child: _videoUnavailable
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 48),
-                            if (_videoError != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                                child: Text(_videoError!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(color: Colors.white38, fontSize: 11)),
-                              ),
-                          ],
-                        )
-                      : (_videoController != null && _videoController!.value.isInitialized
-                          ? FullVideoPlayer(controller: _videoController!)
-                          : const CircularProgressIndicator()),
-                )
-              : InteractiveViewer(
-                  minScale: 1,
-                  maxScale: 5,
-                  child: CachedNetworkImage(
-                    imageUrl: widget.capture.mediaUrl,
-                    httpHeaders: const {'User-Agent': _browserUA},
-                    fit: BoxFit.contain,
-                    width: double.infinity,
-                    height: double.infinity,
-                    placeholder: (c, u) => const Center(child: CircularProgressIndicator()),
-                    errorWidget: (c, u, e) =>
-                        const Center(child: Icon(Icons.broken_image_outlined, color: Colors.white54, size: 48)),
-                  ),
-                ),
+          child: _isClip ? _buildVideo() : _buildImage(),
         ),
+      ),
+    );
+  }
+
+  Widget _buildVideo() {
+    if (_videoError != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 48),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Text(_videoError!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+            ),
+          ],
+        ),
+      );
+    }
+    if (_videoController == null) return const Center(child: CircularProgressIndicator());
+    return Video(controller: _videoController!, controls: AdaptiveVideoControls);
+  }
+
+  Widget _buildImage() {
+    return InteractiveViewer(
+      minScale: 1,
+      maxScale: 5,
+      child: CachedNetworkImage(
+        imageUrl: widget.capture.mediaUrl,
+        httpHeaders: const {'User-Agent': _browserUA},
+        fit: BoxFit.contain,
+        width: double.infinity,
+        height: double.infinity,
+        placeholder: (c, u) => const Center(child: CircularProgressIndicator()),
+        errorWidget: (c, u, e) =>
+            const Center(child: Icon(Icons.broken_image_outlined, color: Colors.white54, size: 48)),
       ),
     );
   }
